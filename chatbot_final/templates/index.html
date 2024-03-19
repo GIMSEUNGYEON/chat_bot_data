@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Chat Room</title>
+<script type="text/javascript"
+	src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='chatbot.css') }}">
+	<script type="text/javascript">
+		$(document).ready(function() {
+
+			var socket = io.connect('http://127.0.0.1:5000');
+
+			socket.on('connect', function() {
+				appendMessageTag("left", "server",
+					"오젠 호텔을 이용해주셔서 감사합니다. 저는 오젠 호텔의 챗봇입니다. 문의 사항이 있으면 편하게 질문해주세요.")
+			});
+
+			socket.on('message', function(msg) {
+				if(msg.type === 'server_message'){
+					appendMessageTag("left", "server",msg.content)
+				}else{
+					appendMessageTag("right", "user", msg.content)
+				}
+// 				$("#messages").append('<li>' + msg + '</li>');
+			});
+			
+			$('#myMessage').keypress(function(e) {
+			    if (e.which == 13) {
+			        e.preventDefault(); // 기본 엔터 행동 막기
+			        var message = $('#myMessage').val().trim(); // 입력값 가져오고 공백 제거
+			        if (message !== '') {
+			            socket.send(message); // 메시지 전송
+			            $('#myMessage').val('').change(); // 입력값 비우기 및 변경 이벤트 발생
+			        }
+			    }
+			});
+
+			$('#sendbutton').on('click', function() {
+			    var message = $('#myMessage').val().trim();
+			    if (message !== '') {
+			        socket.send(message); // 메시지 전송
+			        $('#myMessage').val('').change(); // 입력값 비우기 및 변경 이벤트 발생
+			    }
+			});
+
+		});
+		
+		// 메세지 태그 생성
+			function createMessageTag(LR_className, senderName, message) {
+		        // 형식 가져오기
+		        let chatLi = $('div.chat.format ul li').clone();
+		 
+		        // 값 채우기
+		        chatLi.addClass(LR_className);
+		        chatLi.find('.sender span').text(senderName);
+		        chatLi.find('.message span').text(message);
+		 
+		        return chatLi;
+		    }
+		 
+			function scrollToBottom() {
+			    window.scroll({
+			        top: document.body.scrollHeight,
+			        behavior: 'smooth' // 부드러운 애니메이션 효과 적용
+			    });
+			}
+	        
+		    // 메세지 태그 append
+		    function appendMessageTag(LR_className, senderName, message) {
+		        const chatLi = createMessageTag(LR_className, senderName, message);
+		 
+		        $('div.chat:not(.format) ul').append(chatLi);
+		        scrollToBottom();
+		    }
+	</script>
+
+</head>
+<body>
+	<div class="chat_wrap">
+		<div class="header">
+	        CHAT
+	     </div>
+		<div class="chat">
+			<ul>
+				<!--채팅이 생성되는 부분 -->
+			</ul>
+		</div>
+		<div class="input-div">
+			<textarea placeholder="Press Enter for send message." id="myMessage"></textarea>
+			<button id="sendbutton" class="custom-btn btn-12">Send</button>
+		</div>
+		
+		<!-- format -->
+		<div class="chat format">
+			<ul>
+				<li>
+					<div class="sender">
+						<span></span>                 
+					</div> 
+						<div class="message">
+						<span></span>                 
+					</div>
+				</li>
+			</ul>
+		</div>
+	</div>
+
+</body>
+</html>
